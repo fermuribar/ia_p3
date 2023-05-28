@@ -79,6 +79,8 @@ void Parchis::initGame(){
     this->horn_move = false;
     this->shock_move = false;
     this->boo_move = false;
+    this->mega_mushroom_move = false;
+    this->mushroom_move = false;
 
     this->turn = 1;
 
@@ -173,7 +175,7 @@ const Board & Parchis::getBoard() const{
     return this->board;
 }
 
-int Parchis::getLastDice(){
+int Parchis::getLastDice() const{
     return this->last_dice;
 }
 
@@ -280,6 +282,8 @@ void Parchis::movePiece(color player, int piece, int dice_number){
                 bananed = false;
                 shock_move = false;
                 boo_move = false;
+                mega_mushroom_move = false;
+                mushroom_move = false;
 
                 remember_6 = (dice_number==6 or (remember_6 and (dice_number == 10 or dice_number == 20)));
 
@@ -327,7 +331,7 @@ void Parchis::movePiece(color player, int piece, int dice_number){
 
                 else if (current_piece.get_type() == mega_piece)
                 {
-                    //star_move = true; // Cambiar por mega en algún momento xd
+                    mega_mushroom_move = true;
                     // Si la siguiente casilla a la del mega champiñón es la meta, nos movemos ahí directamente.
                     if(nextBox(player, final_box).type == goal){
                         final_box = nextBox(player, final_box);
@@ -516,6 +520,8 @@ void Parchis::movePiece(color player, int piece, int dice_number){
                 this->horn_move = false;
                 this->shock_move = false;
                 this->boo_move = false;
+                this->mega_mushroom_move = false;
+                this->mushroom_move = false;
 
                 remember_6 = false; // Si no, puedo sacar 6 y empezar a tirar dados especiales sin parar
 
@@ -527,19 +533,20 @@ void Parchis::movePiece(color player, int piece, int dice_number){
                     break;
                     case mushroom:
                     {
-                        dice_number = 8;
+                        this->mushroom_move = true;
+                        int move_number = 8;
                         Box final_box;
                         // Si la ficha está a menos de 40 casillas de su meta, del tirón.
-                        if(distanceToGoal(player, piece) <= dice_number){
+                        if(distanceToGoal(player, piece) <= move_number){
                             final_box = Box(0, goal, player);
                         }
                         else{
-                            final_box = computeMove(current_piece.get_color(), current_piece.get_box(), dice_number);
+                            final_box = computeMove(current_piece.get_color(), current_piece.get_box(), move_number);
                             while (this->boxState(final_box).size() > 0)
                             {
-                                dice_number++;
+                                move_number++;
                                 //final_box = computeMove(current_piece, dice_number);
-                                final_box = computeMove(current_piece.get_color(), current_piece.get_box(), dice_number);
+                                final_box = computeMove(current_piece.get_color(), current_piece.get_box(), move_number);
                             }
                         }
                         board.movePiece(player, piece, final_box);
@@ -584,7 +591,7 @@ void Parchis::movePiece(color player, int piece, int dice_number){
                     {
                         this->bullet_move = true;
                         board.setPieceType(player, piece, normal_piece);
-                        dice_number = 40;
+                        int move_number = 40;
                         // Si la ficha está en su home se saca a su casilla inicial primero.
                         if(current_piece.get_box().type == home){
                             board.movePiece(player, piece, Box(init_boxes.at(player), normal, none));
@@ -593,16 +600,16 @@ void Parchis::movePiece(color player, int piece, int dice_number){
                         }
                         Box final_box;
                         // Si la ficha está a menos de 40 casillas de su meta, del tirón.
-                        if(distanceToGoal(player, piece) <= dice_number){
+                        if(distanceToGoal(player, piece) <= move_number){
                             final_box = Box(0, goal, player);
                         }
                         else{
-                            final_box = computeMove(current_piece.get_color(), current_piece.get_box(), dice_number);
+                            final_box = computeMove(current_piece.get_color(), current_piece.get_box(), move_number);
                             while (this->boxState(final_box).size() > 0)
                             {
-                                dice_number++;
+                                move_number++;
                                 //final_box = computeMove(current_piece, dice_number);
-                                final_box = computeMove(current_piece.get_color(), current_piece.get_box(), dice_number);
+                                final_box = computeMove(current_piece.get_color(), current_piece.get_box(), move_number);
                             }
                         }
 
@@ -710,7 +717,7 @@ void Parchis::movePiece(color player, int piece, int dice_number){
                     break;
                     case mega_mushroom:
                     {
-                        //star_move = true; // Cambiar por mega en algún momento xd
+                        this->mega_mushroom_move = true;
                         board.setPieceType(player, piece, mega_piece);
                         board.setPieceTurnsLeft(player, piece, 4);
 
@@ -983,6 +990,9 @@ bool Parchis::isLegalMove(const Piece & piece, int dice_number) const{
         for(int i = 0; i < board.getPieces(player).size() && !hay_walls; i++){
             hay_walls = (isWall(board.getPiece(player, i).get_box()) == player);
         }
+        for(int i = 0; i < board.getPieces(partner_color(player)).size() && !hay_walls; i++){
+            hay_walls = (isWall(board.getPiece(partner_color(player), i).get_box()) == partner_color(player));
+        }
 
         if(hay_walls && isWall(box) != player){
             return false;
@@ -1141,15 +1151,16 @@ void Parchis::gameLoop(){
         int winner = getWinner();
         color winner_color = getColorWinner();
 
-        cout << "Ha ganado el jugador " << winner << " (" << str(winner_color) << ")" << endl;
+        cout << "Ha ganado el jugador " << 1 + winner << " (" << str(winner_color) << ")" << endl;
+        cout << "¡¡¡ENHORABUENA, " << getPlayers().at(winner)->getName() << "!!!" << endl;
         //cout << "Ha ganado el jugador " << winner << endl;
         if (illegalMove())
         {
-            cout << "El jugador " << (winner == 1 ? 0 : 1) << " ha hecho un movimiento ilegal" << endl;
+            cout << "El jugador " << 1 + (winner == 1 ? 0 : 1) << " ha hecho un movimiento ilegal" << endl;
         }
         if(overBounce())
         {
-            cout << "El jugador " << (winner == 1 ? 0 : 1) << " ha excedido el límite de rebotes." << endl;
+            cout << "El jugador " << 1 + (winner == 1 ? 0 : 1) << " ha excedido el límite de rebotes." << endl;
         }
         cout << "++++++++++++++++++++++++" << endl;
     }
@@ -1641,7 +1652,7 @@ const vector<color> Parchis::anyMegaWall(const Box & b1, const Box & b2) const{
     vector<color> walls;
     bool reached_final_box = false;
     if (b1.type == normal && final_box.num != b1.num){
-        for (int i = b1.num+1; !reached_final_box; i = i%68 + 1){ //Vamos recorriendo casillas intermedias
+        for (int i = b1.num % 68 + 1; !reached_final_box; i = i%68 + 1){ //Vamos recorriendo casillas intermedias
             reached_final_box = (final_box.num == i);
             //Si hay un muro, lo añadimos al vector de muros.
             color c = isMegaWall(Box(i, normal, none));
@@ -1678,7 +1689,8 @@ const vector<color> Parchis::anyWall(const Box & b1, const Box & b2) const{
     vector<color> walls;
     bool reached_final_box = false;
     if (b1.type == normal && final_box.num != b1.num){
-        for (int i = b1.num+1; !reached_final_box; i = i%68 + 1){ //Vamos recorriendo casillas intermedias
+        for (int i = b1.num % 68 + 1; !reached_final_box; i = i % 68 + 1)
+        { // Vamos recorriendo casillas intermedias
             reached_final_box = (final_box.num == i);
             //Si hay un muro, lo añadimos al vector de muros.
             color c = isWall(Box(i, normal, none));
@@ -1715,7 +1727,7 @@ const vector<BoardTrap> Parchis::anyTrap(const Box & b1, const Box & b2) const{
     vector<BoardTrap> traps;
     bool reached_final_box = false;
     if (b1.type == normal && final_box.num != b1.num){
-        for (int i = b1.num+1; !reached_final_box; i = i%68 + 1){ //Vamos recorriendo casillas intermedias
+        for (int i = b1.num%68+1; !reached_final_box; i = i%68 + 1){ //Vamos recorriendo casillas intermedias
             reached_final_box = (final_box.num == i);
             //Si hay un muro, lo añadimos al vector de muros.
             for (int j = 0; j < this->board.getTraps().size(); j++){
