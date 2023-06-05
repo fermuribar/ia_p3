@@ -54,12 +54,9 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
         case 0:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
             break;
-        case 3:
-            thinkMejorOpcion(c_piece, id_piece, dice);
+        case 1:
+            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
             break;
-        // case 1:
-        //     valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
-        //     break;
         // case 2:
         //     valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
         //     break;
@@ -76,21 +73,21 @@ double AIPlayer::Poda_AlfaBeta(const Parchis &actual, int jugador, int profundid
     }else{
         if(actual.getCurrentPlayerId() == jugador){ //nodo MAX
             for(auto hijo = hijos.begin(); hijo != hijos.end(); ++hijo){
+                alpha = max(alpha, Poda_AlfaBeta(*hijo, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristic));
+
                 c_piece = hijo.getMovedColor();
                 id_piece = hijo.getMovedPieceId();
                 dice = hijo.getMovedDiceValue();
-
-                alpha = max(alpha, Poda_AlfaBeta(*hijo, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristic));
                 if(alpha >= beta) return beta; //poda
             }
             return alpha;
         }else{  //nodo MIN
             for(auto hijo = hijos.begin(); hijo != hijos.end(); ++hijo){
+                beta = min(beta, Poda_AlfaBeta(*hijo, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristic));
+
                 c_piece = hijo.getMovedColor();
                 id_piece = hijo.getMovedPieceId();
                 dice = hijo.getMovedDiceValue();
-
-                beta = min(beta, Poda_AlfaBeta(*hijo, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristic));
                 if(beta <= alpha) return alpha; //poda
             }
             return beta;
@@ -98,7 +95,27 @@ double AIPlayer::Poda_AlfaBeta(const Parchis &actual, int jugador, int profundid
     }
 }
 
+double AIPlayer::ContarDistancia(const Parchis &estado, color c) {
+    double resultado = 0;
+    const int max_distancia = 1 + 65 + 8;
+    for(int i = 0; i < 3; i++){
+        double distancia_desde_inicio = max_distancia - estado.distanceToGoal(c,i);
+        resultado += pow(distancia_desde_inicio,2);
+    }
+    return resultado;
+}
 
+double AIPlayer::MiValoracion1(const Parchis &estado, int jugador) {
+    double resultado = 0;
+    for(int j = 0; j < 2; j++){
+        double sign = ((j == jugador) ? 1 : -1);
+        vector<color> colores = estado.getPlayerColors(j);
+        for(color c : colores){
+            resultado += ContarDistancia(estado,c) * sign;
+        }
+    }
+    return resultado;
+}
 
 double AIPlayer::ValoracionTest(const Parchis &estado, int jugador)
 {
