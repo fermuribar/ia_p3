@@ -22,47 +22,80 @@ bool AIPlayer::move(){
 }
 
 void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
-    switch (id){
-        case 0:
-            thinkAleatorio(c_piece, id_piece, dice);
-        break;
-        case 1:
-            thinkAleatorioMasInteligente(c_piece, id_piece, dice);
-        break;
-        case 2:
-            thinkFichaMasAdelantada(c_piece, id_piece, dice);
-        break;
-        case 3:
-            thinkMejorOpcion(c_piece, id_piece, dice);
-        break;
-    }
+    // switch (id){
+    //     case 0:
+    //         thinkAleatorio(c_piece, id_piece, dice);
+    //     break;
+    //     case 1:
+    //         thinkAleatorioMasInteligente(c_piece, id_piece, dice);
+    //     break;
+    //     case 2:
+    //         thinkFichaMasAdelantada(c_piece, id_piece, dice);
+    //     break;
+    //     case 3:
+    //         thinkMejorOpcion(c_piece, id_piece, dice);
+    //     break;
+    // }
 
-    /*
+    
     // El siguiente código se proporciona como sugerencia para iniciar la implementación del agente.
 
     double valor; // Almacena el valor con el que se etiqueta el estado tras el proceso de busqueda.
     double alpha = menosinf, beta = masinf; // Cotas iniciales de la poda AlfaBeta
     // Llamada a la función para la poda (los parámetros son solo una sugerencia, se pueden modificar).
-    valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
-    cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
+        // valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
+        // cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
 
     // ----------------------------------------------------------------- //
 
     // Si quiero poder manejar varias heurísticas, puedo usar la variable id del agente para usar una u otra.
+    
     switch(id){
         case 0:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
             break;
-        case 1:
-            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
+        case 3:
+            thinkMejorOpcion(c_piece, id_piece, dice);
             break;
-        case 2:
-            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
-            break;
+        // case 1:
+        //     valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
+        //     break;
+        // case 2:
+        //     valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
+        //     break;
     }
     cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
 
-    */
+    
+}
+
+double AIPlayer::Poda_AlfaBeta(const Parchis &actual, int jugador, int profundidad, int profundidad_max, color &c_piece, int &id_piece, int &dice, double alpha, double beta, double (*heuristic)(const Parchis &, int)) const{
+    ParchisBros hijos = actual.getChildren();
+    if(profundidad == profundidad_max){
+        return heuristic(actual, jugador);
+    }else{
+        if(actual.getCurrentPlayerId() == jugador){ //nodo MAX
+            for(auto hijo = hijos.begin(); hijo != hijos.end(); ++hijo){
+                c_piece = hijo.getMovedColor();
+                id_piece = hijo.getMovedPieceId();
+                dice = hijo.getMovedDiceValue();
+
+                alpha = max(alpha, Poda_AlfaBeta(*hijo, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristic));
+                if(alpha >= beta) return beta; //poda
+            }
+            return alpha;
+        }else{  //nodo MIN
+            for(auto hijo = hijos.begin(); hijo != hijos.end(); ++hijo){
+                c_piece = hijo.getMovedColor();
+                id_piece = hijo.getMovedPieceId();
+                dice = hijo.getMovedDiceValue();
+
+                beta = min(beta, Poda_AlfaBeta(*hijo, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristic));
+                if(beta <= alpha) return alpha; //poda
+            }
+            return beta;
+        }
+    }
 }
 
 
