@@ -60,6 +60,9 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
         case 2:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
             break;
+        case 3:
+            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion3);
+            break;
         // case 2:
         //     thinkFichaMasAdelantada(c_piece, id_piece, dice);
         // break;
@@ -150,6 +153,38 @@ double AIPlayer::MiValoracion2(const Parchis &estado, int jugador) {
                 resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
                 //resultado += estado.piecesAtGoal(colores[1]) * 60 * sign;
                 resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  // prueba con 10
+            }
+            
+        //}
+    }
+    return resultado;
+}
+
+double AIPlayer::MiValoracion3(const Parchis &estado, int jugador) {
+     double resultado = 0;
+
+
+    //calculo de distancias 
+    for(int j = 0; j < 2; j++){
+        double sign = ((j == jugador) ? 1 : -1);
+        vector<color> colores = estado.getPlayerColors(j);
+        //for(color c : colores){
+            if(estado.piecesAtGoal(colores[0]) > estado.piecesAtGoal(colores[1])){
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * 2;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign;
+                //resultado += estado.piecesAtGoal(colores[0]) * 60 * sign;
+                resultado += estado.piecesAtHome(colores[0]) * -10 * sign;  // prueba con 10
+                
+            }else if(estado.piecesAtGoal(colores[0]) < estado.piecesAtGoal(colores[1])){
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
+                //resultado += estado.piecesAtGoal(colores[1]) * 60 * sign;
+                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  // prueba con 10
+            }else{
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign;
+                resultado += estado.piecesAtHome(colores[0]) * -10 * sign;
+                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;
             }
             
         //}
