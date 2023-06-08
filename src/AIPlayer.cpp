@@ -5,7 +5,7 @@ const double masinf = 9999999999.0, menosinf = -9999999999.0;
 const double gana = masinf - 1, pierde = menosinf + 1;
 const int num_pieces = 3;
 const int PROFUNDIDAD_MINIMAX = 4;  // Umbral maximo de profundidad para el metodo MiniMax
-const int PROFUNDIDAD_ALFABETA = 6; // Umbral maximo de profundidad para la poda Alfa_Beta
+const int PROFUNDIDAD_ALFABETA = 6; // Umbral maximo de profundidad para la poda Alfa_Beta 6 realmente
 
 bool AIPlayer::move(){
     cout << "Realizo un movimiento automatico" << endl;
@@ -57,15 +57,15 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
         case 1:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
             break;
-        // case 2:
-        //     valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
-        //     break;
         case 2:
-            thinkFichaMasAdelantada(c_piece, id_piece, dice);
-        break;
-        case 3:
-            thinkMejorOpcion(c_piece, id_piece, dice);
-        break;
+            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
+            break;
+        // case 2:
+        //     thinkFichaMasAdelantada(c_piece, id_piece, dice);
+        // break;
+        // case 3:
+        //     thinkMejorOpcion(c_piece, id_piece, dice);
+        // break;
     }
     cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
 
@@ -126,6 +126,33 @@ double AIPlayer::MiValoracion1(const Parchis &estado, int jugador) {
         for(color c : colores){
             resultado += ContarDistancia(estado,c) * sign;
         }
+    }
+    return resultado;
+}
+
+double AIPlayer::MiValoracion2(const Parchis &estado, int jugador) {
+    double resultado = 0;
+
+
+    //calculo de distancias 
+    for(int j = 0; j < 2; j++){
+        double sign = ((j == jugador) ? 1 : -1);
+        vector<color> colores = estado.getPlayerColors(j);
+        //for(color c : colores){
+            if(estado.piecesAtGoal(colores[0]) > estado.piecesAtGoal(colores[1])){
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * 2;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign;
+                //resultado += estado.piecesAtGoal(colores[0]) * 60 * sign;
+                resultado += estado.piecesAtHome(colores[0]) * -10 * sign;  // prueba con 10
+                
+            }else{
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
+                //resultado += estado.piecesAtGoal(colores[1]) * 60 * sign;
+                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  // prueba con 10
+            }
+            
+        //}
     }
     return resultado;
 }
