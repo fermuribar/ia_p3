@@ -161,7 +161,33 @@ double AIPlayer::MiValoracion2(const Parchis &estado, int jugador) {
 }
 
 double AIPlayer::MiValoracion3(const Parchis &estado, int jugador) {
-     double resultado = 0;
+    double resultado = 0;
+
+
+    //calculo de distancias 
+    for(int j = 0; j < 2; j++){
+        double sign = ((j == jugador) ? 1 : -1);
+        vector<color> colores = estado.getPlayerColors(j);
+        //for(color c : colores){
+            if(estado.piecesAtGoal(colores[0]) > estado.piecesAtGoal(colores[1])){
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * 2;
+                //resultado += sqrt(ContarDistancia(estado,colores[1])) * sign;
+                //resultado += estado.piecesAtGoal(colores[0]) * 60 * sign;
+                resultado += estado.piecesAtHome(colores[0]) * -10 * sign;  // prueba con 10
+                
+            }else{
+                //resultado += sqrt(ContarDistancia(estado,colores[0])) * sign;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
+                //resultado += estado.piecesAtGoal(colores[1]) * 60 * sign;
+                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  // prueba con 10
+            }
+            
+        //}
+    }
+    return resultado;
+}
+
+/* double resultado = 0;
 
 
     //calculo de distancias 
@@ -172,25 +198,29 @@ double AIPlayer::MiValoracion3(const Parchis &estado, int jugador) {
             if(estado.piecesAtGoal(colores[0]) > estado.piecesAtGoal(colores[1])){
                 resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * 2;
                 resultado += sqrt(ContarDistancia(estado,colores[1])) * sign;
-                //resultado += estado.piecesAtGoal(colores[0]) * 60 * sign;
+                resultado += estado.piecesAtGoal(colores[0]) * 10 * sign;
                 resultado += estado.piecesAtHome(colores[0]) * -10 * sign;  // prueba con 10
-                
-            }else if(estado.piecesAtGoal(colores[0]) < estado.piecesAtGoal(colores[1])){
-                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign;
-                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
-                //resultado += estado.piecesAtGoal(colores[1]) * 60 * sign;
-                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  // prueba con 10
+
+                for(int i = 0; i < 3; i++){
+                    if(estado.isSafePiece(colores[0],i))
+                        resultado += 10;
+                }
+                // estado.isSafePiece()
             }else{
                 resultado += sqrt(ContarDistancia(estado,colores[0])) * sign;
-                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign;
-                resultado += estado.piecesAtHome(colores[0]) * -10 * sign;
-                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
+                resultado += estado.piecesAtGoal(colores[1]) * 10 * sign;
+                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  // prueba con 10
+                for(int i = 0; i < 3; i++){
+                    if(estado.isSafePiece(colores[0],i))
+                        resultado += 10;
+                }
             }
-            
+            resultado += -10 * sign *estado.getBounces(colores[0]);
+            resultado += -10 * sign *estado.getBounces(colores[1]); 
         //}
     }
-    return resultado;
-}
+    return resultado;*/
 
 double AIPlayer::ValoracionTest(const Parchis &estado, int jugador)
 {
