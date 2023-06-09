@@ -116,6 +116,7 @@ double AIPlayer::ContarDistancia(const Parchis &estado, color c) {
     const int max_distancia = 1 + 65 + 8;
     for(int i = 0; i < 3; i++){
         double distancia_desde_inicio = max_distancia - estado.distanceToGoal(c,i);
+        if(estado.isSafePiece(c,i)) distancia_desde_inicio + 2; //line a añadida para recoger de alguna manera las piezas seguras
         resultado += pow(distancia_desde_inicio,2);
     }
     return resultado;
