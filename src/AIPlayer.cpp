@@ -55,13 +55,13 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
             break;
         case 1:
+            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion3);
+            break;
+        case 3:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
             break;
         case 2:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
-            break;
-        case 3:
-            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion3);
             break;
         case 4:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion4);
@@ -202,14 +202,14 @@ double AIPlayer::MiValoracion4(const Parchis &estado, int jugador) {
         //for(color c : colores){
             if(estado.piecesAtGoal(colores[0]) > estado.piecesAtGoal(colores[1])){
 
-                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * (sign == 1) ? 2 : 1;
-            
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * 2;
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 0.5;
                 resultado += estado.piecesAtHome(colores[0]) * -10 * sign;  // prueba con 10
             }else{
                 
-                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * (sign == 1) ? 2 : 1;
-                
-                resultado += estado.piecesAtHome(colores[1]) * -10 * sign;  
+                resultado += sqrt(ContarDistancia(estado,colores[1])) * sign * 2;
+                resultado += sqrt(ContarDistancia(estado,colores[0])) * sign * 0.5;
+                resultado += estado.piecesAtHome(colores[1]) * -10 * sign; 
             }
             
         //}
